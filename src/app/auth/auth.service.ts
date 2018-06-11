@@ -33,6 +33,7 @@ export class AuthServivce {
   logout() {
     this.user = null;
     this.authChange.next(false);
+    this.router.navigate(['/login']);
   }
 
   getUser() {
@@ -42,7 +43,7 @@ export class AuthServivce {
   }
 
   isAuth() {
-    return this.user !== null;
+    return this.user != null;
   }
 
   authOk() {
