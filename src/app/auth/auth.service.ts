@@ -1,11 +1,16 @@
+import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 
 import { User } from './user.model';
 import { AuthData } from './auth-data.model';
 
+@Injectable()
 export class AuthServivce {
   authChange = new Subject<boolean>();
   private user: User;
+
+  constructor(private router: Router) {}
 
   registerUser(authData: AuthData) {
     // Mocking a register user response for now
@@ -13,7 +18,7 @@ export class AuthServivce {
       email: authData.email,
       userId: Math.round(Math.random() * 10000).toString()
     };
-    this.authChange.next(true);
+    this.authOk();
   }
 
   login(authData: AuthData) {
@@ -22,7 +27,7 @@ export class AuthServivce {
       email: authData.email,
       userId: Math.round(Math.random() * 10000).toString()
     };
-    this.authChange.next(true);
+    this.authOk();
   }
 
   logout() {
@@ -38,6 +43,11 @@ export class AuthServivce {
 
   isAuth() {
     return this.user !== null;
+  }
+
+  authOk() {
+    this.authChange.next(true);
+    this.router.navigate(['/training']);
   }
 
 }
