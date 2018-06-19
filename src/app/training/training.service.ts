@@ -12,6 +12,8 @@ export class TrainingService {
     { id: 'burpees', name: 'Burpees', duration: 60, calories: 8 }
   ];
 
+  private pastExercises: Exercise[] = [];
+
   private currentExercise: Exercise;
 
   getAvailableExercises() {
@@ -21,6 +23,32 @@ export class TrainingService {
   startExercise(selectedId: string) {
     this.currentExercise = this.availableExercises.find(ex => ex.id === selectedId);
     this.execiseChanged.next({ ...this.currentExercise });
+  }
+
+  endExercise() {
+    this.pastExercises.push({
+      ...this.currentExercise,
+      date: new Date(),
+      status: 'completed'
+    });
+    this.currentExercise = null;
+    this.execiseChanged.next(null);
+  }
+
+  cancelExercise(progress: number) {
+    this.pastExercises.push({
+      ...this.currentExercise,
+      duration: this.currentExercise.duration * (progress / 100),
+      calories: this.currentExercise.calories * (progress / 100),
+      date: new Date(),
+      status: 'cancelled'
+    });
+    this.currentExercise = null;
+    this.execiseChanged.next(null);
+  }
+
+  getCurrentExercise() {
+    return { ...this.currentExercise };
   }
 
 }
