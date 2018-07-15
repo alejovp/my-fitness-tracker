@@ -9,10 +9,9 @@ import { Exercise } from './exercise.model';
 export class TrainingService {
   execiseChanged = new Subject<Exercise>();
   availableExercisesChanged = new Subject<Exercise[]>();
+  pastExercisesChanged = new Subject<Exercise[]>();
+
   private availableExercises: Exercise[] = [];
-
-  private pastExercises: Exercise[] = [];
-
   private currentExercise: Exercise;
 
   constructor(private db: AngularFirestore) {
@@ -77,8 +76,14 @@ export class TrainingService {
     return { ...this.currentExercise };
   }
 
-  getCompletedOrCancelledExercises() {
-    return this.pastExercises.slice();
+  fetchCompletedOrCancelledExercises() {
+    this.db
+      .collection('finishedExercises')
+      .valueChanges()
+      .subscribe((exercises: Exercise[]) => {
+        // this.pastExercises = exercises;
+        this.pastExercisesChanged.next(exercises);
+      });
   }
 
   private saveExerciseInDB(exercise: Exercise) {
