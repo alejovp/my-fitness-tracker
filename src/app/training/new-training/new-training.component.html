@@ -8,7 +8,7 @@
                       ngModel
                       name="exerciseId"
                       required>
-            <mat-option *ngFor="let exercise of exerciseList | async" 
+            <mat-option *ngFor="let exercise of exerciseList" 
                         [value]="exercise.id">
               {{exercise.name}}
             </mat-option>

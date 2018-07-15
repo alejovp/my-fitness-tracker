@@ -1,27 +1,54 @@
-import { Subject } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { Subject, Observable, Subscription } from 'rxjs';
+import { AngularFirestore } from 'angularfire2/firestore';
+import { map } from 'rxjs/operators';
 
 import { Exercise } from './exercise.model';
 
+@Injectable()
 export class TrainingService {
   execiseChanged = new Subject<Exercise>();
-
-  private availableExercises: Exercise[] = [
-    { id: 'crunches', name: 'Crunches', duration: 30, calories: 8 },
-    { id: 'touch-toes', name: 'Touch Toes', duration: 180, calories: 15 },
-    { id: 'side-lunges', name: 'Side Lunges', duration: 120, calories: 18 },
-    { id: 'burpees', name: 'Burpees', duration: 60, calories: 8 }
-  ];
+  availableExercisesChanged = new Subject<Exercise[]>();
+  availableExercisesSubscription: Subscription;
+  private availableExercises: Exercise[] = [];
 
   private pastExercises: Exercise[] = [];
 
   private currentExercise: Exercise;
 
+  constructor(private db: AngularFirestore) {
+    this.fetchAvailableExercises();
+  }
+
+  fetchAvailableExercises() {
+    this.availableExercisesSubscription = this.db
+      .collection('availableExercises')
+      .snapshotChanges()
+      // mapping the snapshot response to the Exercice model (we need the db document id)
+      .pipe(
+        map(docsArray => {
+          return docsArray.map(document => {
+            return {
+              id: document.payload.doc.id,
+              ...document.payload.doc.data()
+            } as Exercise;
+          });
+        })
+      )
+      .subscribe((exercises: Exercise[]) => {
+        this.availableExercises = exercises;
+        this.availableExercisesChanged.next(this.getAvailableExercises());
+      });
+  }
+
   getAvailableExercises() {
-    return [ ...this.availableExercises ];
+    return [...this.availableExercises];
   }
 
   startExercise(selectedId: string) {
-    this.currentExercise = this.availableExercises.find(ex => ex.id === selectedId);
+    this.currentExercise = this.availableExercises.find(
+      ex => ex.id === selectedId
+    );
     this.execiseChanged.next({ ...this.currentExercise });
   }
 
@@ -54,5 +81,4 @@ export class TrainingService {
   getCompletedOrCancelledExercises() {
     return this.pastExercises.slice();
   }
-
 }
