@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Subject, Observable, Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { AngularFirestore } from 'angularfire2/firestore';
 import { map } from 'rxjs/operators';
 
@@ -9,7 +9,6 @@ import { Exercise } from './exercise.model';
 export class TrainingService {
   execiseChanged = new Subject<Exercise>();
   availableExercisesChanged = new Subject<Exercise[]>();
-  availableExercisesSubscription: Subscription;
   private availableExercises: Exercise[] = [];
 
   private pastExercises: Exercise[] = [];
@@ -21,7 +20,7 @@ export class TrainingService {
   }
 
   fetchAvailableExercises() {
-    this.availableExercisesSubscription = this.db
+    this.db
       .collection('availableExercises')
       .snapshotChanges()
       // mapping the snapshot response to the Exercice model (we need the db document id)
@@ -53,7 +52,7 @@ export class TrainingService {
   }
 
   endExercise() {
-    this.pastExercises.push({
+    this.saveExerciseInDB({
       ...this.currentExercise,
       date: new Date(),
       status: 'completed'
@@ -63,7 +62,7 @@ export class TrainingService {
   }
 
   cancelExercise(progress: number) {
-    this.pastExercises.push({
+    this.saveExerciseInDB({
       ...this.currentExercise,
       duration: this.currentExercise.duration * (progress / 100),
       calories: this.currentExercise.calories * (progress / 100),
@@ -80,5 +79,9 @@ export class TrainingService {
 
   getCompletedOrCancelledExercises() {
     return this.pastExercises.slice();
+  }
+
+  private saveExerciseInDB(exercise: Exercise) {
+    this.db.collection('finishedExercises').add(exercise);
   }
 }
